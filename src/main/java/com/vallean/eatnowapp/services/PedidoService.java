@@ -14,7 +14,6 @@ import com.vallean.eatnowapp.domain.enums.EstadoPagamento;
 import com.vallean.eatnowapp.repositories.ItemPedidoRepository;
 import com.vallean.eatnowapp.repositories.PagamentoRepository;
 import com.vallean.eatnowapp.repositories.PedidoRepository;
-import com.vallean.eatnowapp.repositories.ProdutoRepository;
 import com.vallean.eatnowapp.services.exceptions.ObjectNotFoundException;
 
 @Service
@@ -27,6 +26,9 @@ public class PedidoService {
 	
 	@Autowired
 	private ProdutoService produtoService;
+	
+	@Autowired
+	private ClienteService clienteService;
 	
 	@Autowired
 	private PagamentoRepository pagamentoRepository;
@@ -45,6 +47,7 @@ public class PedidoService {
 	public Pedido insert(Pedido obj) {
 		obj.setId(null);
 		obj.setInstante(new Date());
+		obj.setCliente(clienteService.find(obj.getCliente().getId()));
 		obj.getPagamento().setEstado(EstadoPagamento.PENDENTE);
 		obj.getPagamento().setPedido(obj);
 		
@@ -58,12 +61,13 @@ public class PedidoService {
 		
 		for (ItemPedido ip : obj.getItens()) {
 			ip.setDesconto(0.00);
-			ip.setPreco(produtoService.find(ip.getProduto().getId()).getPreco());
+			ip.setProduto(produtoService.find(ip.getProduto().getId()));
+			ip.setPreco(ip.getProduto().getPreco());
 			ip.setPedido(obj);
 		}
 		
 		itemPedidoRepository.saveAll(obj.getItens());
-		
+		System.out.println(obj);
 		return obj;
 	}
 }
